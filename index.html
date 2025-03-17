@@ -1,54 +1,145 @@
 <!DOCTYPE html>
-<html lang="ml">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice Generator</title>
-    <script src="https://js.stripe.com/v3/"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; padding: 20px; background-color: #f4f4f4; }
-        .container { max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        .invoice-header { text-align: center; margin-bottom: 20px; }
-        .input-group { margin-bottom: 10px; }
-        label { font-weight: bold; }
-        input, textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
-        button { background-color: #28a745; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; width: 100%; }
-        button:hover { background-color: #218838; }
-        .payment-message { color: red; font-weight: bold; text-align: center; margin-top: 20px; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .invoice-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .payment-message {
+            color: red;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="invoice-header">
             <h2>Invoice Generator</h2>
-            <p>നിങ്ങൾക്ക് <span id="invoiceCount">2</span> സൗജന്യ ഇൻവോയിസുകൾ ബാക്കിയുണ്ട്.</p>
+            <p>You have <span id="invoiceCount">2</span> free invoices remaining.</p>
+        </div>
+        
+        <div class="input-group">
+            <label for="companyName">Company Name:</label>
+            <input type="text" id="companyName" placeholder="Enter company name">
         </div>
         <div class="input-group">
-            <label for="companyName">കമ്പനിയുടെ പേര്:</label>
-            <input type="text" id="companyName" placeholder="കമ്പനിയുടെ പേര് നൽകുക">
+            <label for="clientName">Client Name:</label>
+            <input type="text" id="clientName" placeholder="Enter client name">
         </div>
         <div class="input-group">
-            <label for="clientName">ക്ലയന്റ് പേര്:</label>
-            <input type="text" id="clientName" placeholder="ക്ലയന്റ് പേര് നൽകുക">
+            <label for="invoiceDetails">Invoice Details:</label>
+            <textarea id="invoiceDetails" placeholder="Enter details"></textarea>
         </div>
-        <button onclick="generateInvoice()">Invoice തയാറാക്കുക</button>
+        <div class="input-group">
+            <label for="units">Units:</label>
+            <input type="number" id="units" placeholder="Enter number of units">
+        </div>
+        <div class="input-group">
+            <label for="amount">Amount per Unit:</label>
+            <input type="number" id="amount" placeholder="Enter amount per unit">
+        </div>
+        <button onclick="generateInvoice()">Generate Invoice</button>
         <div id="paymentMessage" class="payment-message"></div>
     </div>
 
     <script>
+        // Initialize invoice count in local storage
         if (!localStorage.getItem('invoiceCount')) {
-            localStorage.setItem('invoiceCount', 2);
+            localStorage.setItem('invoiceCount', 2); // Start with 2 free invoices
         }
+
+        // Display remaining free invoices
         document.getElementById('invoiceCount').textContent = localStorage.getItem('invoiceCount');
+
+        function getCurrencySymbol() {
+            const country = navigator.language;
+            if (country.includes("US")) return "$";
+            if (country.includes("IN")) return "₹";
+            return "$"; // Default to USD
+        }
 
         function generateInvoice() {
             const invoiceCount = parseInt(localStorage.getItem('invoiceCount'));
             if (invoiceCount <= 0) {
-                document.getElementById('paymentMessage').textContent = "സൗജന്യ ഇൻവോയിസുകൾ തീർന്നിരിക്കുന്നു. Payment Page-ലേക്ക് മാറുന്നു...";
+                document.getElementById('paymentMessage').textContent = "You've used all free invoices. Payment required.";
                 return;
             }
 
-            alert("Invoice Generated Successfully!");
+            const companyName = document.getElementById('companyName').value;
+            const clientName = document.getElementById('clientName').value;
+            const invoiceDetails = document.getElementById('invoiceDetails').value;
+            const units = document.getElementById('units').value;
+            const amount = document.getElementById('amount').value;
+
+            if (!companyName || !clientName || !invoiceDetails || !units || !amount) {
+                alert("Please fill all fields");
+                return;
+            }
+
+            const currencySymbol = getCurrencySymbol();
+            const totalAmount = units * amount;
+
+            let invoiceWindow = window.open('', '_blank');
+            if (!invoiceWindow) {
+                alert("Popup blocked! Please allow popups for this site.");
+                return;
+            }
+            invoiceWindow.document.write(`<!DOCTYPE html><html><head><title>Invoice</title></head><body>`);
+            invoiceWindow.document.write(`<h2>${companyName}</h2>`);
+            invoiceWindow.document.write(`<p><strong>Client Name:</strong> ${clientName}</p>`);
+            invoiceWindow.document.write(`<p><strong>Details:</strong> ${invoiceDetails}</p>`);
+            invoiceWindow.document.write(`<p><strong>Units:</strong> ${units}</p>`);
+            invoiceWindow.document.write(`<p><strong>Amount per Unit:</strong> ${currencySymbol}${amount}</p>`);
+            invoiceWindow.document.write(`<p><strong>Total Amount:</strong> ${currencySymbol}${totalAmount}</p>`);
+            invoiceWindow.document.write(`<p>Thank you for your business!</p>`);
+            invoiceWindow.document.write(`</body></html>`);
+            invoiceWindow.document.close();
+
+            // Decrement invoice count
             localStorage.setItem('invoiceCount', invoiceCount - 1);
             document.getElementById('invoiceCount').textContent = localStorage.getItem('invoiceCount');
         }
