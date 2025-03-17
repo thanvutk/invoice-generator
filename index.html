@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Generator</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .invoice-header { text-align: center; margin-bottom: 20px; }
+        .input-group { margin-bottom: 10px; }
+        label { font-weight: bold; }
+        input, textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
+        button { background-color: #28a745; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; width: 100%; }
+        button:hover { background-color: #218838; }
+        .payment-message { color: red; font-weight: bold; text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="invoice-header">
+            <h2>Invoice Generator</h2>
+            <p>നിങ്ങൾക്ക് <span id="invoiceCount">2</span> സൗജന്യ ഇൻവോയിസുകൾ ബാക്കിയുണ്ട്.</p>
+        </div>
+        <div class="input-group">
+            <label for="companyName">കമ്പനിയുടെ പേര്:</label>
+            <input type="text" id="companyName" placeholder="കമ്പനിയുടെ പേര് നൽകുക">
+        </div>
+        <div class="input-group">
+            <label for="clientName">ക്ലയന്റ് പേര്:</label>
+            <input type="text" id="clientName" placeholder="ക്ലയന്റ് പേര് നൽകുക">
+        </div>
+        <button onclick="generateInvoice()">Invoice തയാറാക്കുക</button>
+        <div id="paymentMessage" class="payment-message"></div>
+    </div>
+
+    <script>
+        if (!localStorage.getItem('invoiceCount')) {
+            localStorage.setItem('invoiceCount', 2);
+        }
+        document.getElementById('invoiceCount').textContent = localStorage.getItem('invoiceCount');
+
+        function generateInvoice() {
+            const invoiceCount = parseInt(localStorage.getItem('invoiceCount'));
+            if (invoiceCount <= 0) {
+                document.getElementById('paymentMessage').textContent = "സൗജന്യ ഇൻവോയിസുകൾ തീർന്നിരിക്കുന്നു. Payment Page-ലേക്ക് മാറുന്നു...";
+                return;
+            }
+
+            alert("Invoice Generated Successfully!");
+            localStorage.setItem('invoiceCount', invoiceCount - 1);
+            document.getElementById('invoiceCount').textContent = localStorage.getItem('invoiceCount');
+        }
+    </script>
+</body>
+</html>
